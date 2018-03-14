@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+
+	<!-- 配置连接池: -->
+	<!-- 引入外部属性文件 -->
+	<context:property-placeholder location="classpath:jdbc.properties" />
+	<!-- 配置C3P0连接池: -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.user}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+
+	<!-- 配置sessionFactory -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<!-- 配置数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 其他配置项 -->
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.show_format">true</prop>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="javax.persistence.validation.mode">none</prop>
+				<prop key="hibernate.current_session_context_class">thread</prop>
+				<prop key=""></prop>
+			</props>
+		</property>
+		<!-- 配置Hibernate的映射文件 -->
+		<!-- <property name="mappingResources" value="cn/shop/wineshop/category/category/domain/Category.hbm.xml"></property> -->
+
+		<property name="mappingResources">
+			<list>
+				<value>cn/shop/wineshop/user/domain/User.hbm.xml</value>
+				<value>cn/shop/wineshop/product/domain/Product.hbm.xml</value>
+				<value>cn/shop/wineshop/category/category/domain/Category.hbm.xml
+				</value>
+				<value>cn/shop/wineshop/category/categorysecond/domain/CategorySecond.hbm.xml
+				</value>
+				<value>cn/shop/wineshop/order/domain/Order.hbm.xml</value>
+				<value>cn/shop/wineshop/order/domain/OrderItem.hbm.xml</value>
+				<value>cn/shop/wineshop/adminuser/domain/AdminUser.hbm.xml</value>
+			</list>
+		</property>
+	</bean>
+	<!-- Dao的配置 -->
+	<bean id="categoryDao"
+		class="cn.shop.wineshop.category.category.dao.impl.CategoryDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+	<bean id="categorySecondDao"
+		class="cn.shop.wineshop.category.categorysecond.dao.impl.CategorySecondDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="productDao" class="cn.shop.wineshop.product.dao.impl.ProductDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="orderDao" class="cn.shop.wineshop.order.dao.impl.OrderDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="adminUserDao" class="cn.shop.wineshop.adminuser.dao.impl.AdminUserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<bean id="userDao" class="cn.shop.wineshop.user.dao.impl.UserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+
+
+	<!-- Service的配置 -->
+	<bean id="categoryService"
+		class="cn.shop.wineshop.category.category.service.impl.CategoryServiceImpl">
+		<property name="categoryDao" ref="categoryDao" />
+	</bean>
+	<bean id="categorySecondService"
+		class="cn.shop.wineshop.category.categorysecond.service.impl.CategorySecondServiceImpl">
+		<property name="categorySecondDao" ref="categorySecondDao" />
+	</bean>
+	<bean id="productService"
+		class="cn.shop.wineshop.product.service.impl.ProductServiceImpl">
+		<property name="productDao" ref="productDao" />
+	</bean>
+	<bean id="orderService" class="cn.shop.wineshop.order.service.impl.OrderServiceImpl">
+		<property name="orderDao" ref="orderDao" />
+	</bean>
+
+	<bean id="adminUserService"
+		class="cn.shop.wineshop.adminuser.service.impl.AdminUserServiceImpl">
+		<property name="adminUserDao" ref="adminUserDao" />
+	</bean>
+
+	<bean id="userService" class="cn.shop.wineshop.user.service.impl.UserServiceImpl">
+		<property name="userDao" ref="userDao" />
+	</bean>
+
+	<!-- Action的配置 =========================== -->
+
+	<!-- 首页访问的Action -->
+	<bean id="indexAction" class="cn.shop.wineshop.index.action.IndexAction"
+		scope="prototype">
+		<property name="categoryService" ref="categoryService" />
+		<property name="productService" ref="productService" />
+	</bean>
+	
+	<!-- 配置验证码Action -->
+	<bean id="checkImgAction" class="cn.shop.wineshop.user.action.CheckImgAction" scope="prototype">
+		
+	</bean>
+	
+	<!-- 用户模块的Action -->
+	<bean id="userAction" class="cn.shop.wineshop.user.action.UserAction" scope="prototype">
+		<!-- 注入Service -->
+		<property name="userService" ref="userService"/>
+	</bean>
+	
+	<!-- 商品模块的Action -->
+	<bean id="productAction" class="cn.shop.wineshop.product.action.ProductAction" scope="prototype">
+		<property name="productService" ref="productService"/>
+	</bean>
+	
+	<!-- 购物车的Action -->
+	<bean id="cartAction" class="cn.shop.wineshop.cart.action.CartAction" scope="prototype">
+		<property name="productService" ref="productService"/>
+	</bean>
+	
+	<!-- 配置OrderAction -->
+	<bean id="orderAction" class="cn.shop.wineshop.order.action.OrderAction" scope="prototype">
+		<property name="orderService" ref="orderService"/>
+	</bean>
+	
+	<!-- 配置后台登录的Action -->
+	<bean id="adminUserAction" class="cn.shop.wineshop.adminuser.action.AdminUserAction" scope="prototype">
+		<property name="adminUserService" ref="adminUserService"/>
+	</bean>
+	
+	<!-- 配置后台一级管理的Action -->
+	<bean id="adminCategoryAction" class="cn.shop.wineshop.category.category.action.CategoryAction" scope="prototype">
+		<property name="categoryService" ref="categoryService"/>
+	</bean>
+	
+	<!-- 配置后台二级分类管理的Action -->
+	<bean id="adminCategorySecondAction" class=" cn.shop.wineshop.category.categorysecond.action.CategorySecondAction" scope="prototype">
+		<property name="categorySecondService" ref="categorySecondService"/>
+		<property name="categoryService" ref="categoryService"/>
+	</bean>
+	
+	<!-- 配置后台商品管理的Action -->
+	<bean id="adminProductAction" class="cn.shop.wineshop.product.action.ProductAction" scope="prototype">
+		<property name="productService" ref="productService"/>
+		<property name="categorySecondService" ref="categorySecondService"/>
+	</bean>
+	
+	<!-- 配置后台订单管理的Action -->
+	<bean id="adminOrderAction" class="cn.shop.wineshop.order.adminaction.AdminOrderAction" scope="prototype">
+		<property name="orderService" ref="orderService"/>
+	</bean>
+	<!-- 配置后台用户管理的Action -->
+	<bean id="userAdminAction" class="cn.shop.wineshop.user.adminaction.UserAdminAction" scope="prototype">
+		<property name="userService" ref="userService"/>
+	</bean>
+
+	<!-- #1 事务管理器，依赖于数据源 -->
+	<bean id="txManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 将事务管理器注册spring -->
+
+	<tx:annotation-driven transaction-manager="txManager" />
+</beans>
